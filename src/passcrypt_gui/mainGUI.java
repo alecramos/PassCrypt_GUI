@@ -377,7 +377,7 @@ public class mainGUI extends javax.swing.JFrame {
          Class.forName("com.mysql.jdbc.Driver"); 
          // Step 2: Establish the connection to the database 
          String url = "jdbc:mysql://rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306/"; 
-         Connection conn = DriverManager.getConnection(url,"alecramos","242CF3457!"); 
+         Connection conn = DriverManager.getConnection(url,"username","password"); 
          connIsMade = true;
         }
        catch(Exception e)
@@ -441,7 +441,7 @@ public class mainGUI extends javax.swing.JFrame {
             Class.forName("com.mysql.jdbc.Driver"); 
             // Step 2: Establish the connection to the database 
             String url = "jdbc:mysql://rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306/PassCrypt"; 
-            Connection conn = DriverManager.getConnection(url,"alecramos","242CF3457!"); 
+            Connection conn = DriverManager.getConnection(url,"username","Password"); 
             String getRecovery = JOptionPane.showInputDialog("Please enter your recovery key");
                 Statement cs = conn.createStatement();
                 try

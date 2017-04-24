@@ -140,6 +140,6 @@ public class dbCon {
 
 public static void main (String args[]) throws Exception {
             dbCon a = new dbCon();
-            a.runMe("rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306", "PassCrypt_paswords", "alecramos", "242CF3457!");     
+            a.runMe("rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306", "PassCrypt_paswords", "username goes here", "you thought I'd give you a password lol");     
 }
 }
