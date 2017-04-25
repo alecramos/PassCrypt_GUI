@@ -13,11 +13,14 @@ import java.awt.event.MouseAdapter;
 import javax.swing.JOptionPane;
 import org.jasypt.util.text.BasicTextEncryptor; //Uses Jasypt Library (www.jasypt.org)
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.sql.*;
+import java.util.Scanner;
+import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 
 /**
@@ -298,7 +301,73 @@ public class mainGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jTextFieldUsageActionPerformed
 
     private void jButtonRemoveDBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRemoveDBActionPerformed
-        // TODO add your handling code here:
+        
+        
+        
+        boolean connIsMade = false;
+         
+       try
+       {
+         // Step 1: "Load" the JDBC driver
+         Class.forName("com.mysql.jdbc.Driver"); 
+         // Step 2: Establish the connection to the database 
+         String url = "jdbc:mysql://rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306/"; 
+         Connection conn = DriverManager.getConnection(url,"alecramos","242CF3457!"); 
+         connIsMade = true;
+        }
+       catch(Exception e)
+       {
+            JOptionPane.showMessageDialog(null, "Error connecting to database, please try again later.", "Database Connection Error", JOptionPane.ERROR_MESSAGE);
+       }
+       
+       if(connIsMade)
+       {
+            try
+            {
+                    // Step 1: "Load" the JDBC driver
+                Class.forName("com.mysql.jdbc.Driver"); 
+                // Step 2: Establish the connection to the database 
+                String getRecovery = "";
+                String url = "jdbc:mysql://rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306/PassCrypt"; 
+                Connection conn = DriverManager.getConnection(url,"alecramos","242CF3457!"); 
+                Statement cs = conn.createStatement();
+
+                JFileChooser fc = new JFileChooser();
+                fc.setDialogTitle("Open .txt file");
+                fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                if(fc.showOpenDialog(null)==JFileChooser.APPROVE_OPTION)
+                {
+                    File file = fc.getSelectedFile();
+                    Scanner s = new Scanner(file);
+                    getRecovery = s.nextLine();
+                    ResultSet sqls = cs.executeQuery("select*from Passwords where RecoveryKey=\"" + getRecovery +  "\"");
+
+
+                        try
+                        {
+                            PreparedStatement statement = conn.prepareStatement("delete from Passwords where RecoveryKey=\"" + getRecovery +  "\"");
+                            statement.executeUpdate();
+                            JOptionPane.showMessageDialog(null, "Removed credentials from database", "Credentials removed", JOptionPane.INFORMATION_MESSAGE);
+                           
+                        }
+                        catch(Exception e)
+                        {
+                            JOptionPane.showMessageDialog(null, "Recovery key not found in database, please try again.", "Recovery key not found", JOptionPane.ERROR_MESSAGE);
+                            System.out.println(e.getMessage());
+                        }
+                }
+                
+            }
+            catch (Exception e)
+            {
+                System.out.println(e.getMessage());
+                JOptionPane.showMessageDialog(null, "Recovery key not found in database, please try again.", "Recovery key not found", JOptionPane.ERROR_MESSAGE);
+            }
+       }
+        
+        
+        
+        
     }//GEN-LAST:event_jButtonRemoveDBActionPerformed
     String recoveryKey = "";
     private void jButtonEncryptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEncryptActionPerformed
@@ -314,7 +383,12 @@ public class mainGUI extends javax.swing.JFrame {
                 }
             });
         String encryptedWord = "";
-        if(jTextFieldKeyword.getText().length() < 4)
+        
+        if(jTextFieldUsage.getText().equals(""))
+             JOptionPane.showMessageDialog(null, "Please enter a usage", "Usage required", JOptionPane.ERROR_MESSAGE);
+        else if(jTextFieldUsername.getText().equals(""))
+             JOptionPane.showMessageDialog(null, "Please enter a username", "Username required", JOptionPane.ERROR_MESSAGE);
+        else if(jTextFieldKeyword.getText().length() < 4)
             JOptionPane.showMessageDialog(null, "Keyword must be at least 4 characters long for higher security", "Keyword too short", JOptionPane.ERROR_MESSAGE);
         else
         {
@@ -377,12 +451,13 @@ public class mainGUI extends javax.swing.JFrame {
          Class.forName("com.mysql.jdbc.Driver"); 
          // Step 2: Establish the connection to the database 
          String url = "jdbc:mysql://rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306/"; 
-         Connection conn = DriverManager.getConnection(url,"username","password"); 
+         Connection conn = DriverManager.getConnection(url,"alecramos","242CF3457!"); 
          connIsMade = true;
         }
        catch(Exception e)
        {
-          JOptionPane.showMessageDialog(null, "Error connecting to database, please try again later.", "Database Connection Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(null, "Error connecting to database, " + e.getMessage() + "\nPlease try again later.", "Database Connection Error", JOptionPane.ERROR_MESSAGE);
+          
        }
        
        if(connIsMade)
@@ -404,11 +479,11 @@ public class mainGUI extends javax.swing.JFrame {
                         StringSelection stringSelection = new StringSelection (recoveryKey);
                         Clipboard clpbrd = Toolkit.getDefaultToolkit ().getSystemClipboard ();
                         clpbrd.setContents (stringSelection, null);
-                        JOptionPane.showMessageDialog(null, "Your password has been saved to the database. A recovery key has been added to your clipboard.\nPlease paste it in a new text document and save it.\nShould you forget your encrypted password, click \"Forgot Password?\" and enter this recovery key to restore the password back in the program.\nYou may also use this key to remove your password from the database.", "Password Saved to Database", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Your password has been saved to the database. A recovery key has been added to your clipboard.\nPlease paste it in a new text (.txt) document and save it.\nShould you forget your encrypted password, click \"Forgot Password?\" and load this recovery key file to restore the password back in the program.\nYou may also use this key to remove your password from the database.", "Password Saved to Database", JOptionPane.INFORMATION_MESSAGE);
             }
             catch (Exception e)
             {
-                JOptionPane.showMessageDialog(null, "Error updating database, please try again.", "Database Update Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Error updating database," + e.getMessage() + "\nPlease try again.", "Database Update Error", JOptionPane.ERROR_MESSAGE);
                 System.out.println(e.getMessage());
             }
        }
@@ -419,6 +494,7 @@ public class mainGUI extends javax.swing.JFrame {
 
     private void jButtonForgotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonForgotActionPerformed
          boolean connIsMade = false;
+         
        try
        {
          // Step 1: "Load" the JDBC driver
@@ -430,7 +506,7 @@ public class mainGUI extends javax.swing.JFrame {
         }
        catch(Exception e)
        {
-            JOptionPane.showMessageDialog(null, "Error connecting to database, please try again later.", "Database Connection Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error connecting to database,"+ e.getMessage() + "\nPlease try again later.", "Database Connection Error", JOptionPane.ERROR_MESSAGE);
        }
        
        if(connIsMade)
@@ -438,32 +514,45 @@ public class mainGUI extends javax.swing.JFrame {
             try
             {
                     // Step 1: "Load" the JDBC driver
-            Class.forName("com.mysql.jdbc.Driver"); 
-            // Step 2: Establish the connection to the database 
-            String url = "jdbc:mysql://rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306/PassCrypt"; 
-            Connection conn = DriverManager.getConnection(url,"username","Password"); 
-            String getRecovery = JOptionPane.showInputDialog("Please enter your recovery key");
+                Class.forName("com.mysql.jdbc.Driver"); 
+                // Step 2: Establish the connection to the database 
+                String getRecovery = "";
+                String url = "jdbc:mysql://rds-mysql-passcrtpt.cqxkllauwd8o.us-east-2.rds.amazonaws.com:3306/PassCrypt"; 
+                Connection conn = DriverManager.getConnection(url,"alecramos","242CF3457!"); 
                 Statement cs = conn.createStatement();
-                try
+
+                JFileChooser fc = new JFileChooser();
+                fc.setDialogTitle("Open .txt file");
+                fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                if(fc.showOpenDialog(null)==JFileChooser.APPROVE_OPTION)
                 {
-                    ResultSet sqls = cs.executeQuery("select*from Passwords where RecoveryKey=" + getRecovery);
-                    jTextFieldUsage.setText(sqls.getObject("Website_Usage").toString());
-                    jTextFieldUsername.setText(sqls.getObject("Username").toString());
-                    jTextFieldKeyword.setText(sqls.getObject("Keyword").toString());
-                    jTextFieldEncryptedPassword.setText(sqls.getObject("EncryptedPassword").toString());
-                    
-                    
-                }
-                catch(Exception e)
-                {
-                    JOptionPane.showMessageDialog(null, "Recovery key not found in database, please try again.", "Recovery key not found", JOptionPane.ERROR_MESSAGE);
-                    System.out.println(e.getMessage());
+                    File file = fc.getSelectedFile();
+                    Scanner s = new Scanner(file);
+                    getRecovery = s.nextLine();
+                    try
+                    {
+                        ResultSet sqls = cs.executeQuery("select*from Passwords where RecoveryKey=\"" + getRecovery +  "\"");
+                        while(sqls.next())
+                        {
+                         jTextFieldUsage.setText(sqls.getObject("Website_Usage").toString());
+                         jTextFieldUsername.setText(sqls.getObject("Username").toString());
+                         jTextFieldKeyword.setText(sqls.getObject("Keyword").toString());
+                         jTextFieldEncryptedPassword.setText(sqls.getObject("EncryptedPassword").toString());
+                         JOptionPane.showMessageDialog(null, "Recovery key found! Loaded credentials into program!", "Recovery key found!", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        JOptionPane.showMessageDialog(null, "Recovery key not found in database, please try again.", "Recovery key not found", JOptionPane.ERROR_MESSAGE);
+                        System.out.println(e.getMessage());
+                    }
                 }
                 
             }
             catch (Exception e)
             {
-                
+                System.out.println(e.getMessage());
+                JOptionPane.showMessageDialog(null, "Recovery key not found in database, please try again.", "Recovery key not found", JOptionPane.ERROR_MESSAGE);
             }
        }
     }//GEN-LAST:event_jButtonForgotActionPerformed
