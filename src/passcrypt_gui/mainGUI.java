@@ -395,24 +395,34 @@ public class mainGUI extends javax.swing.JFrame {
             if(jComboBoxEncryption.getSelectedItem().equals("Method 1"))
             {
                 encryptedWord = hexEncrypt(jasyptEncrypt(hexEncrypt(jTextFieldKeyword.getText())));
+                System.out.println("Text1:"+encryptedWord);
+                String encryptedWord2 = jasyptEncrypt(hexEncrypt(jTextFieldKeyword.getText()));
+                System.out.println("Text2:"+encryptedWord2);
+                encryptedWord = combine(truncate(20,encryptedWord), truncate(20,encryptedWord2));
             }
             else
             {
                 encryptedWord = jasyptEncrypt(hexEncrypt(jTextFieldKeyword.getText()));
+                System.out.println("Before:"+encryptedWord);
+                String encryptedWord2 = hexEncrypt(jasyptEncrypt(hexEncrypt(jTextFieldKeyword.getText())));
+                encryptedWord = combine(truncate(20,encryptedWord), truncate(20,encryptedWord2));
             }
+            
+            
 
             if(jCheckBoxTruncate.isSelected())
                 encryptedWord = truncate(Integer.parseInt(jTextFieldCharNum.getText()), encryptedWord);
-            else
-                encryptedWord = truncate(20, encryptedWord);
+//            else
+//                encryptedWord = truncate(20, encryptedWord);
 
             if(!jCheckBoxSymbols.isSelected())
                 encryptedWord = removeSymbols(encryptedWord);
+            else
+                encryptedWord = insertSymbols(encryptedWord);
 
             jTextFieldEncryptedPassword.setText(encryptedWord);
             recoveryKey = binEncrypt(jTextFieldKeyword.getText());
             recoveryKey = truncate(35, recoveryKey);
-            System.out.println(recoveryKey);
 
 
             
@@ -443,6 +453,22 @@ public class mainGUI extends javax.swing.JFrame {
             jTextFieldCharNum.setEnabled(false);
     }//GEN-LAST:event_jCheckBoxTruncateActionPerformed
 
+    
+    
+    private String combine(String text1, String text2)
+    {
+        String newText1 = text1.substring((text1.length()-1)/2);
+        String newText2 = text2.substring((text2.length()-1)/2);
+        System.out.println("text1 1/2:"+newText1);
+        System.out.println("text2 1/2:"+newText2);
+        
+        return newText1+newText2;
+    }
+    
+    
+    
+    
+    
     private void jButtonSaveDBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveDBActionPerformed
        boolean connIsMade = false;
        try
@@ -671,7 +697,39 @@ public class mainGUI extends javax.swing.JFrame {
     
     public static String insertSymbols(String text)
     {
-        return "";
+        String newString = "";
+        int randomNum = 0;
+        boolean hasSymbol = false;
+        char[] charArray = text.toCharArray();
+        for(char c: charArray)
+        {
+            try
+            {
+                randomNum = Integer.parseInt(Character.toString(c));
+            }
+            catch(Exception e)
+                    {
+                        
+                    }
+        }
+        for(char c: charArray)
+        {
+            if(isSymbol(c))
+            {
+                return text;
+            }
+        }
+        if(!hasSymbol)
+        {
+            charArray[randomNum] = '!';
+            charArray[charArray.length-1] = (char) randomWithRange(33, 45);
+            charArray[(charArray.length-1)/2] = (char) randomWithRange(91, 96);
+        }
+        for(char c: charArray)
+        {
+            newString+=c;
+        }
+        return newString;
     }
     
     private static boolean isSymbol(char charThing)
@@ -681,6 +739,12 @@ public class mainGUI extends javax.swing.JFrame {
                     ((int)charThing >= 91 && (int)charThing <= 96) ||
                     ((int)charThing >= 123 && (int)charThing <= 127);
     }
+    
+   private static int randomWithRange(int min, int max)
+   {
+        int range = (max - min) + 1;     
+        return (int)(Math.random() * range) + min;
+   }
     
     public static String binEncrypt(String text)
     {
